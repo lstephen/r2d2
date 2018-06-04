@@ -3,7 +3,7 @@ require "test_helper"
 module R2D2
   class TokenBuilderTest < Minitest::Test
     def setup
-      @fixtures = __dir__ + "/fixtures/"
+      @fixtures = File.dirname(__FILE__) + "/fixtures/"
       @recipient_id = 'merchant:12345678901234567890'
       @verification_keys = JSON.parse(File.read(@fixtures + "ec_v1/google_verification_key_test.json"))
     end
@@ -15,7 +15,7 @@ module R2D2
 
     def test_builds_google_pay_token
       token_attrs = JSON.parse(File.read(@fixtures + "ec_v1/tokenized_card.json"))
-      assert_instance_of GooglePayToken, R2D2.build_token(token_attrs, recipient_id: @recipient_id, verification_keys: @verification_keys)
+      assert_instance_of GooglePayToken, R2D2.build_token(token_attrs, :recipient_id => @recipient_id, :verification_keys => @verification_keys)
     end
 
     def test_building_token_raises_with_unknown_protocol_version
@@ -23,7 +23,7 @@ module R2D2
       token_attrs['protocolVersion'] = 'foo'
 
       assert_raises ArgumentError do
-        R2D2.build_token(token_attrs, recipient_id: @recipient_id, verification_keys: @verification_keys)
+        R2D2.build_token(token_attrs, :recipient_id => @recipient_id, :verification_keys => @verification_keys)
       end
     end
 

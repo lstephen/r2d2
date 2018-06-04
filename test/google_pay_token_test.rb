@@ -4,7 +4,7 @@ module R2D2
   class GooglePayTokenTest < Minitest::Test
     def setup
       @recipient_id = 'merchant:12345678901234567890'
-      @fixtures = __dir__ + "/fixtures/ec_v1/"
+      @fixtures = File.dirname(__FILE__) + "/fixtures/ec_v1/"
       @token = JSON.parse(File.read(@fixtures + "tokenized_card.json"))
       @private_key = File.read(@fixtures + "private_key.pem")
       @verification_keys = JSON.parse(File.read(@fixtures + "google_verification_key_test.json"))
@@ -97,8 +97,8 @@ module R2D2
     def new_token
       R2D2::GooglePayToken.new(
         @token,
-        recipient_id: @recipient_id,
-        verification_keys: @verification_keys
+        :recipient_id => @recipient_id,
+        :verification_keys => @verification_keys
       )
     end
   end

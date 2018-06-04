@@ -4,10 +4,10 @@ module R2D2
 
     attr_reader :protocol_version, :recipient_id, :verification_keys, :signature, :signed_message
 
-    def initialize(token_attrs, recipient_id:, verification_keys:)
+    def initialize(token_attrs, opts={})
       @protocol_version = token_attrs['protocolVersion']
-      @recipient_id = recipient_id
-      @verification_keys = verification_keys
+      @recipient_id = opts[:recipient_id]
+      @verification_keys = opts[:verification_keys]
       @signature = token_attrs['signature']
       @signed_message = token_attrs['signedMessage']
     end
@@ -43,12 +43,23 @@ module R2D2
       verified = verification_keys['keys'].any? do |key|
         next if key['protocolVersion'] != protocol_version
 
-        ec = OpenSSL::PKey::EC.new(Base64.strict_decode64(key['keyValue']))
-        ec.verify(digest, Base64.strict_decode64(signature), signed_bytes)
+        ec = OpenSSL::PKey::EC.new(strict_decode64(key['keyValue']))
+
+        begin
+          ec.verify(digest, strict_decode64(signature), signed_bytes)
+        rescue OpenSSL::PKey::PKeyError
+          false
+        end
       end
 
       raise SignatureInvalidError unless verified
       JSON.parse(signed_message)
+    end
+
+    private
+
+    def strict_decode64(str)
+      str.unpack("m0").first
     end
   end
 end

@@ -5,7 +5,7 @@ module R2D2
     include Util
 
     def setup
-      fixtures = __dir__ + "/fixtures/"
+      fixtures = File.dirname(__FILE__) + "/fixtures/"
       @token_attrs = JSON.parse(File.read(fixtures + "token.json"))
       @private_key = File.read(fixtures + "private_key.pem")
       @payment_token = R2D2::AndroidPayToken.new(@token_attrs)

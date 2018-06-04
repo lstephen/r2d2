@@ -2,12 +2,14 @@ $LOAD_PATH.unshift File.expand_path("../../lib", __FILE__)
 require "r2d2"
 
 require "minitest/autorun"
+
 require "timecop"
 
-begin
-  require "pry-byebug"
+def require_if_present(dep)
+  require dep
 rescue LoadError
-  # Ignore, byebug is not installed for older ruby versions
+  # Ignore
 end
 
->>>>>>> ruby-1.8.7
+require_if_present "pry-byebug"
+

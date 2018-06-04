@@ -4,17 +4,20 @@ module R2D2
   SignatureInvalidError = Class.new(R2D2::Error)
   MessageExpiredError = Class.new(R2D2::Error)
 
-  def build_token(token_attrs, recipient_id: nil, verification_keys: nil)
+  def build_token(token_attrs, opts={})
     protocol_version = token_attrs.fetch('protocolVersion', 'ECv0')
 
     case protocol_version
     when 'ECv0'
       AndroidPayToken.new(token_attrs)
     when 'ECv1'
+      recipient_id = opts[:recipient_id]
+      verification_keys = opts[:verification_keys]
+
       raise ArgumentError, "missing keyword: recipient_id" if recipient_id.nil?
       raise ArgumentError, "missing keyword: verification_keys" if verification_keys.nil?
 
-      GooglePayToken.new(token_attrs, recipient_id: recipient_id, verification_keys: verification_keys)
+      GooglePayToken.new(token_attrs, :recipient_id => recipient_id, :verification_keys => verification_keys)
     else
       raise ArgumentError, "unknown protocolVersion #{protocol_version}"
     end
@@ -33,8 +36,8 @@ module R2D2
       key_material = Base64.decode64(ephemeral_public_key) + shared_secret
       hkdf_bytes = hkdf(key_material, info)
       {
-        symmetric_encryption_key: hkdf_bytes[0..15],
-        mac_key: hkdf_bytes[16..32]
+        :symmetric_encryption_key => hkdf_bytes[0..15],
+        :mac_key => hkdf_bytes[16..32]
       }
     end
 
@@ -84,7 +87,7 @@ module R2D2
 
     if defined?(OpenSSL::KDF) && OpenSSL::KDF.respond_to?(:hkdf)
       def hkdf(key_material, info)
-        OpenSSL::KDF.hkdf(key_material, salt: 0.chr * 32, info: info, length: 32, hash: 'sha256')
+        OpenSSL::KDF.hkdf(key_material, :salt => 0.chr * 32, :info => info, :length => 32, :hash => 'sha256')
       end
     else
       begin
@@ -97,7 +100,7 @@ module R2D2
       end
 
       def hkdf(key_material, info)
-        HKDF.new(key_material, algorithm: 'SHA256', info: info).next_bytes(32)
+        HKDF.new(key_material, :algorithm => 'SHA256', :info => info).next_bytes(32)
       end
     end
   end
